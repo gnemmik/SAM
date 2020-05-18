@@ -18,21 +18,13 @@ Pour le premier serveur :
 
     kimmeng@shelby:~/SAM/TME_JDBC$ java -cp h2-1.4.199.jar org.h2.tools.Server -ifNotExists -tcp -tcpPort 9093 &
     [1] 6073
-<<<<<<< HEAD
     TCP server running at tcp://localhost:9093 (only local connections)
-=======
-    kimmeng@shelby:~/SAM/TME_JDBC$ TCP server running at tcp://localhost:9093 (only local connections)
->>>>>>> f2b8cef7939f4b90ea2c7e11c81b31da06e78e2a
 
 Et ensuite, le deuxème serveur :  
 
     kimmeng@shelby:~/SAM/TME_JDBC$ java -cp h2-1.4.199.jar org.h2.tools.Server -ifNotExists -tcp -tcpPort 9094 &
     [2] 6119
-<<<<<<< HEAD
     TCP server running at tcp://localhost:9094 (only local connections)  
-=======
-    kimmeng@shelby:~/SAM/TME_JDBC$ TCP server running at tcp://localhost:9094 (only local connections)  
->>>>>>> f2b8cef7939f4b90ea2c7e11c81b31da06e78e2a
 
 On vérifie que les deux serveurs H2 sont bien démarrés :
 
@@ -67,7 +59,6 @@ Les instructions pour consulter la base sont :
 
 Dans **SQL Workbench**, on commence par créer 2 tables dont l'une contient une clé étrangère qui fait référence à la clé de l’autre table.
 
-<<<<<<< HEAD
     CREATE TABLE CLIENT (
         id INT NOT NULL AUTO_INCREMENT,
         nom VARCHAR(100) NOT NULL,
@@ -100,25 +91,6 @@ On remplit ensuite nos deux tables :
                                                             (4, 'Pain chocolat', 4) ;
 
 ### 3. Premier test
-=======
-    CREATE TABLE Client (
-        numero INT NOT NULL AUTO_INCREMENT,
-        nom VARCHAR(100) NOT NULL,
-        prenom VARCHAR(100),
-        PRIMARY KEY (numero)
-    );
-
-    CREATE TABLE Commande (
-        numero INT PRIMARY KEY AUTO_INCREMENT,
-        client INT NOT NULL,
-        produit VARCHAR(40),
-        quantite SMALLINT DEFAULT 1,
-        CONSTRAINT fk_client_numero          -- On donne un nom à notre clé
-            FOREIGN KEY (client)             -- Colonne sur laquelle on crée la clé
-            REFERENCES Client(numero)        -- Colonne de référence
-    );
-
->>>>>>> f2b8cef7939f4b90ea2c7e11c81b31da06e78e2a
 Pour tester notre base de données, on va créer une classe Java puis utiliser l'API **JDBC** : 
 
     import java.sql.Connection;
@@ -132,7 +104,6 @@ Pour tester notre base de données, on va créer une classe Java puis utiliser l
             try {
                 Connection conn = null;
                 Statement stmt = null;
-<<<<<<< HEAD
                 
                 String url = "jdbc:h2:tcp://localhost:9093/~/base1";
                 String usr = "moi";
@@ -147,26 +118,6 @@ Pour tester notre base de données, on va créer une classe Java puis utiliser l
                     System.out.print("nom: " + resultSet.getString("nom")+", ");
                     System.out.print("prenom: " + resultSet.getString("prenom")+", ");
                     System.out.println("age: " + resultSet.getString("age"));
-=======
-                String url = "jdbc:h2:tcp://localhost:9093/~/base1";
-            
-                conn = DriverManager.getConnection(url, "moi", "");
-                
-                stmt = conn.createStatement();
-                
-                String query = "INSERT INTO Client (prenom, nom)" + 
-                        " VALUES" + 
-                        " ('Rébecca', 'Armand')," + 
-                        " ('Aimée', 'Hebert')," + 
-                        " ('Marielle', 'Ribeiro')," + 
-                        " ('Hilaire', 'Savary');";
-                stmt.execute(query);
-                
-                ResultSet resultSet = stmt.executeQuery("select * from Client"); 
-                while(resultSet.next()) {
-                    System.out.print("nom : " + resultSet.getString("nom")+", ");
-                    System.out.println("prenom : " + resultSet.getString("prenom"));
->>>>>>> f2b8cef7939f4b90ea2c7e11c81b31da06e78e2a
                 }
                 
                 resultSet.close();
@@ -178,7 +129,6 @@ Pour tester notre base de données, on va créer une classe Java puis utiliser l
         }
     }
 
-<<<<<<< HEAD
 
 L'affichage dans la console : 
 
@@ -211,15 +161,3 @@ Pour éteindre le SGDB H2 :
 Pour vérifier que tout est éteind : 
 
     kimmeng@shelby:~/SAM/TME_JDBC$ ps -u | grep h2 | grep Server
-=======
-L'affichage dans la console : 
-
-    nom : Armand, prenom : Rébecca
-    nom : Hebert, prenom : Aimée
-    nom : Ribeiro, prenom : Marielle
-    nom : Savary, prenom : Hilaire
-
-
-## Exercice 2 : Jointure centralisée  
-
->>>>>>> f2b8cef7939f4b90ea2c7e11c81b31da06e78e2a
