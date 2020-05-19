@@ -48,11 +48,6 @@ Dans **SQL Workbench**, il y a 2 parties :
 * Partie supérieure : pour éditer les instructions SQL.
 * Partie inférieure : pour afficher les résultats des instructions.  
 
-Les instructions pour consulter la base sont :  
-* show tables; (affiche le nom des tables.)  
-* show columns from matable; (affiche le schéma relationnel de matable.)  
-
-
 ## Exercice 1 : Requêtes centralisées en JDBC  
 
 ### 1. Création d’une table  
@@ -100,7 +95,7 @@ On remplit ensuite nos deux tables :
                                                             (7, 'Baguette tradition', 1);
 
 ### 3. Premier test
-Pour tester notre base de données, on va créer une classe Java puis utiliser l'API **JDBC**, on prend bien soin d'initialiser les connexions dans la clausse *try* afin de profiter de l'*autoCloseable* ainsi on aura pas besoin de **close()** les connexions(Connection, Statement, ResultSet etc.).
+Pour tester notre base de données, on va créer une classe Java puis utiliser l'API **JDBC**, on prend bien soin d'initialiser les connexions dans la clause *try* afin de profiter de l'*autoCloseable* ainsi on n'aura pas besoin de **close()** les connexions(Connection, Statement, ResultSet etc.).
 
     import java.sql.Connection;
     import java.sql.DriverManager;
@@ -163,7 +158,7 @@ Une requête paramétrée est utilisée pour l’itération imbriquée. Pour cr�
 
     public class Exercice2 {
         public static void main(String[] args) {
-            
+
             String url = "jdbc:h2:tcp://localhost:9093/~/base1";
             String usr = "moi";
             String pwd = "";
@@ -222,7 +217,7 @@ Et dans la base2, la table CLIENT2 qui contient le reste des données des client
                                                       (11, 'Precieuse', 'Pierre', 35),
                                                       (12, 'Sensei', 'Koro', 18);
 
-On va maintenat écrire un programme java qui utilise 2 connections (à base1 et base2) pour implémenter une jointure réparties entre les 2 bases par une méthode de tri-fusion. La jointure se fera sur l'attribut **id** qui est unique(il n'y aura pas deux fois le même **id**). 
+On va maintenant écrire un programme java qui utilise 2 connections (à base1 et base2) pour implémenter une jointure réparties entre les 2 bases par une méthode de tri-fusion. La jointure se fera sur l'attribut **id** qui est unique(il n'y aura pas deux fois le même **id**). 
 
     import java.sql.Connection;
     import java.sql.DriverManager;
@@ -310,7 +305,7 @@ L'affichage dans la console :
 
 ## Exercice 4 facultatif : Jointure sur des attributs non uniques 
 
-On veut étudier le cas d'une requête d'equi-jointure entre deux attributs qui ne sont pas uniques, par exemple entre deux **ages**. La différence avec l'exercice précédent est qu'il peut y avoir des valeurs qui se répètent dans les 2 attributs de jointure.  
+On veut étudier le cas d'une requête d'equi-jointure entre deux attributs qui ne sont pas uniques, par exemple entre deux **âges**. La différence avec l'exercice précédent est qu'il peut y avoir des valeurs qui se répètent dans les 2 attributs de jointure.  
 Dans notre cas, on va faire une jointure sur l'attribut **age** et certains *clients* ont le même âge, on devra donc faire attention à tous les traiter.
 
     import java.sql.Connection;
