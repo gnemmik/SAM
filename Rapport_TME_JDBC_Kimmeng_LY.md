@@ -52,25 +52,24 @@ Dans **SQL Workbench**, il y a 2 parties :
 
 ### 1. Création d’une table  
 
-Dans **SQL Workbench**, on commence par créer 2 tables dont l'une contient une clé étrangère qui fait référence à la clé de l’autre table.
+Dans **SQL Workbench**, on commence par créer 2 tables dont l'une contient une clé étrangère qui fait référence à la clé primaire de l’autre table.
 
 ``` sql
-CREATE TABLE CLIENT (
-    id INT NOT NULL AUTO_INCREMENT,
-    nom VARCHAR(100) NOT NULL,
-    prenom VARCHAR(100),
-    age INT,
-    PRIMARY KEY (id)
+CREATE TABLE GARAGE (
+    idgarage INT NOT NULL AUTO_INCREMENT,
+    nom VARCHAR(255),
+    ville VARCHAR(255),
+    jourdefermeure VARCHAR(255),
+    PRIMARY KEY (idgarage)
 );
 
-CREATE TABLE COMMANDE (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    client INT NOT NULL,
-    produit VARCHAR(40),
-    quantite SMALLINT DEFAULT 1,
-    CONSTRAINT fk_client_id          -- On donne un nom à notre clé
-        FOREIGN KEY (client)         -- Colonne sur laquelle on crée la clé
-        REFERENCES CLIENT(id)        -- Colonne de référence
+CREATE TABLE MECANICIEN (
+    idpers INT NOT NULL AUTO_INCREMENT,
+    idgarage INT NOT NULL,
+    niveau INT,
+    PRIMARY KEY (idpers),
+    FOREIGN KEY (idgarage)         -- Colonne sur laquelle on crée la clé
+    REFERENCES GARAGE(idgarage)    -- Colonne de référence
 );
 ```
 
@@ -78,28 +77,33 @@ CREATE TABLE COMMANDE (
 On remplit ensuite nos deux tables : 
 
 ```sql
-INSERT INTO CLIENT (nom, prenom, age) VALUES ('Armand', 'Rébecca', 24),
-                                             ('Hebert', 'Aimée', 35),
-                                             ('Ribeiro', 'Marielle', 18),
-                                             ('Savary', 'Hilaire', 27),
-                                             ('Dupont', 'Jean', 64),
-                                             ('Dubois', 'Léo', 23),
-                                             ('Mbappé', 'Kylian', 21),
-                                             ('Georges', 'Antoine', 25),
-                                             ('Cavani', 'Edinson', 32),
-                                             ('Messi', 'Lionel', 33),
-                                             ('Precieuse', 'Pierre', 45),
-                                             ('Sensei','Koro', 18);
+INSERT INTO GARAGE (nom, ville, jourdefermeure) VALUES ('Speedy', 'Paris', 'Dimanche'),
+                                                       ('AutoService', 'Tours', 'Lundi'),
+                                                       ('Feu Vert', 'Paris', 'Dimanche'),
+                                                       ('iDGARAGE', 'Lyon', 'Samedi'),
+                                                       ('Modern Garage', 'Bordeaux', 'Lundi'),
+                                                       ('Garage Auto', 'Paris', 'Dimanche'),
+                                                       ('La Centrale', 'Marseille', 'Lundi'),
+                                                       ('AD Garage', 'Paris', 'Dimanche'),
+                                                       ('Euromaster', 'Lyon', 'Samedi'),
+                                                       ('Nauroto', 'La Rochelle', 'Dimanche');
                                                 
-INSERT INTO COMMANDE (client, produit, quantite) VALUES (1, 'Baguette', 2),
-                                                        (3, 'Croissant', 1),
-                                                        (4, 'Pain chocolat', 4)
-                                                        (10, 'Baguette', 5),
-                                                        (7, 'Baguette tradition', 1);
+INSERT INTO MECANICIEN (idpers, idgarage, niveau) VALUES (1, 1, 2),
+                                                         (2, 1, 3),
+                                                         (4, 10, 2),
+                                                         (5, 10, 1),
+                                                         (6, 3, 2),
+                                                         (8, 6, 2),
+                                                         (10, 3, 1),
+                                                         (11, 4, 2),
+                                                         (12, 4, 2),
+                                                         (13, 1, 2);
 ```
 
 ### 3. Premier test
 Pour tester notre base de données, on va créer une classe Java puis utiliser l'API **JDBC**, on prend bien soin d'initialiser les connexions dans la clause *try* afin de profiter de l'*autoCloseable* ainsi on n'aura pas besoin de **close()** les connexions(Connection, Statement, ResultSet etc.).
+
+**Requête** : afficher tous les garages.
 
 ```java
 import java.sql.Connection;
@@ -110,43 +114,42 @@ import java.sql.Statement;
 
 public class Exercice1 {
     public static void main(String[] args) {
-            
-        String url = "jdbc:h2:tcp://localhost:9093/~/base1";
+    	
+    	String url = "jdbc:h2:tcp://localhost:9093/~/base1";
         String usr = "moi";
         String pwd = "";
-            
+        
         try(Connection connection = DriverManager.getConnection(url, usr, pwd);
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM CLIENT");) { 
-                
-             while(resultSet.next()) {
-                 System.out.print("ID: " + resultSet.getString("id")+"    ");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM GARAGE");) { 
+            
+            while(resultSet.next()) {
+            	System.out.print("ID: " + resultSet.getString("idgarage")+"    ");
                 System.out.print("Nom: " + resultSet.getString("nom")+"    ");
-                System.out.print("Prenom: " + resultSet.getString("prenom")+"    ");
-                System.out.println("Age: " + resultSet.getString("age")+".");
+                System.out.print("Ville: " + resultSet.getString("ville")+"    ");
+                System.out.println("Ferme: " + resultSet.getString("jourdefermeture")+".");
             }
-                
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }    
+    }
 }
 ```
 
 L'affichage dans la console : 
 
-    ID: 1    Nom: Armand    Prenom: Rébecca    Age: 24.
-    ID: 2    Nom: Hebert    Prenom: Aimée    Age: 35.
-    ID: 3    Nom: Ribeiro    Prenom: Marielle    Age: 18.
-    ID: 4    Nom: Savary    Prenom: Hilaire    Age: 27.
-    ID: 5    Nom: Dupont    Prenom: Jean    Age: 64.
-    ID: 6    Nom: Dubois    Prenom: Léo    Age: 23.
-    ID: 7    Nom: Mbappé    Prenom: Kylian    Age: 21.
-    ID: 8    Nom: Georges    Prenom: Antoine    Age: 25.
-    ID: 9    Nom: Cavani    Prenom: Edinson    Age: 32.
-    ID: 10    Nom: Messi    Prenom: Lionel    Age: 33.
-    ID: 11    Nom: Precieuse    Prenom: Pierre    Age: 45.
-    ID: 12    Nom: Sensei    Prenom: Koro    Age: 18.
+    ID: 1    Nom: Speedy    Ville: Paris    Ferme: Dimanche.
+    ID: 2    Nom: AutoService    Ville: Tours    Ferme: Lundi.
+    ID: 3    Nom: Feu Vert    Ville: Paris    Ferme: Dimanche.
+    ID: 4    Nom: iDGARAGE    Ville: Lyon    Ferme: Samedi.
+    ID: 5    Nom: Modern Garage    Ville: Bordeaux    Ferme: Lundi.
+    ID: 6    Nom: Garage Auto    Ville: Paris    Ferme: Dimanche.
+    ID: 7    Nom: La Centrale    Ville: Marseille    Ferme: Lundi.
+    ID: 8    Nom: AD Garage    Ville: Paris    Ferme: Dimanche.
+    ID: 9    Nom: Euromaster    Ville: Lyon    Ferme: Samedi.
+    ID: 10    Nom: Nauroto    Ville: La Rochelle    Ferme: Dimanche.
+
 
 
 ## Exercice 2 : Jointure centralisée  
@@ -154,6 +157,37 @@ L'affichage dans la console :
 On va écrire un programme java qui implémente une jointure par boucles imbriquées.  
 Une première requête sert pour l’itération principale.   
 Une requête paramétrée est utilisée pour l’itération imbriquée. Pour créer une requête paramétrée on va utiliser **PreparedStatement** .
+
+**Requête** : afficher *nom*, *prenom* et *age* de tous les mécaniciens. 
+
+Pour cela, on va créer une table **PERSONNE** qui contient les informations personnelles des mécaniciens (les personnes dans cette table ne sont pas tous mécaniciens). 
+
+``` sql
+CREATE TABLE PERSONNE (
+    idpers INT NOT NULL AUTO_INCREMENT,
+    nom VARCHAR(255) NOT NULL,
+    prenom VARCHAR(255),
+    age INT,
+    PRIMARY KEY (idpers)
+);
+
+INSERT INTO PERSONNE (nom, prenom, age) VALUES ('Armand', 'Rébecca', 24),
+                                             ('Hebert', 'Aimée', 35),
+                                             ('Ribeiro', 'Marielle', 18),
+                                             ('Savary', 'Hilaire', 27),
+                                             ('Dupont', 'Jean', 64),
+                                             ('Dubois', 'Léo', 23),
+                                             ('Mbappé', 'Kylian', 21),
+                                             ('Georges', 'Antoine', 25),
+                                             ('Cavani', 'Edinson', 32),
+                                             ('Messi', 'Lionel', 33),
+                                             ('Precieuse', 'Pierre', 45),
+                                             ('Durand','Jeanne', 18),
+                                             ('Zoulou','Zoé', 18),
+                                             ('Pitaut','Enzo', 18),
+                                             ('Hunter','Paulo', 18);
+```
+Notre programme Java ressemblera à ça : 
 
 ```java
 import java.sql.Connection;
@@ -165,30 +199,29 @@ import java.sql.Statement;
 
 public class Exercice2 {
     public static void main(String[] args) {
-
-        String url = "jdbc:h2:tcp://localhost:9093/~/base1";
+    	
+    	String url = "jdbc:h2:tcp://localhost:9093/~/base1";
         String usr = "moi";
         String pwd = "";
-            
+        
         try(Connection connection = DriverManager.getConnection(url, usr, pwd);
             Statement statement = connection.createStatement();
-            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM COMMANDE WHERE client = ?");
-            ResultSet rsClient = statement.executeQuery("SELECT * FROM CLIENT");) {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM PERSONNE WHERE idpers = ?");
+            ResultSet rsMeca = statement.executeQuery("SELECT * FROM MECANICIEN");) {
+        	
+            while(rsMeca.next()) {
+                preparedStatement.setInt(1, rsMeca.getInt("idpers"));
+                ResultSet rsPers =  preparedStatement.executeQuery();
                 
-            while(rsClient.next()) {
-                    
-                preparedStatement.setInt(1, rsClient.getInt("id"));
-                ResultSet rsCommande =  preparedStatement.executeQuery();
-                    
-                while(rsCommande.next()) {
-                    System.out.print("Nom: " + rsClient.getString("nom")+", ");
-                    System.out.print("Prenom: " + rsClient.getString("prenom")+", ");
-                    System.out.print("Produit: "+ rsCommande.getString("produit")+", ");
-                    System.out.println("Quantité: "+ rsCommande.getString("quantite")+"";
+                while(rsPers.next()) {
+                	System.out.print("ID: " + rsPers.getString("idpers")+"   ");
+                	System.out.print("Nom: " + rsPers.getString("nom")+"   ");
+                	System.out.print("Prenom: " + rsPers.getString("prenom")+"   ");
+                	System.out.println("Age: "+ rsPers.getString("age")+".");
                 }
-                rsCommande.close();
+                rsPers.close();
             }
-                
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -198,37 +231,49 @@ public class Exercice2 {
 
 L'affichage dans la console :
 
-    Nom: Armand, Prenom: Rébecca, Produit: Baguette, Quantité: 2.
-    Nom: Ribeiro, Prenom: Marielle, Produit: Croissant, Quantité: 1.
-    Nom: Savary, Prenom: Hilaire, Produit: Pain chocolat, Quantité: 4.
-    Nom: Mbappé, Prenom: Kylian, Produit: Baguette tradition, Quantité: 1.
-    Nom: Messi, Prenom: Lionel, Produit: Baguette, Quantité: 5.
+    ID: 1   Nom: Armand   Prenom: Rébecca   Age: 24.
+    ID: 2   Nom: Hebert   Prenom: Aimée   Age: 35.
+    ID: 4   Nom: Savary   Prenom: Hilaire   Age: 27.
+    ID: 5   Nom: Dupont   Prenom: Jean   Age: 64.
+    ID: 6   Nom: Dubois   Prenom: Léo   Age: 23.
+    ID: 8   Nom: Georges   Prenom: Antoine   Age: 25.
+    ID: 10   Nom: Messi   Prenom: Lionel   Age: 33.
+    ID: 11   Nom: Precieuse   Prenom: Pierre   Age: 45.
+    ID: 12   Nom: Durand   Prenom: Jeanne   Age: 65.
+    ID: 13   Nom: Zoulou   Prenom: Zoé   Age: 32.
 
-## Exercice 3 : Jointure par fusion
-Dans cet exercice, on va répartir les données de notre table CLIENT sur deux bases.
-Avec l’outil SQLWorkbench, on va créer une table dans chaque base, base1 et base2.  
-On crée dans base1, la table CLIENT1 qui contient une partie des données des clients.
+**Complexité** : 
 
-```sql
-INSERT INTO CLIENT1 (id, nom, prenom, age) VALUES (1, 'Armand', 'Rébecca', 24),
-                                                  (3, 'Ribeiro', 'Marielle', 18),
-                                                  (5, 'Dupont', 'Jean', 64), 
-                                                  (7, 'Mbappé', 'Kylian', 21),
-                                                  (9, 'Cavani', 'Edinson', 32);
-```
-
-Et dans la base2, la table CLIENT2 qui contient le reste des données des clients.
+## Exercice 3 : Jointure par tri-fusion
+Avec l’outil SQLWorkbench, on va créer une table dans une deuxième base: **base2**.  
+Dans **base1**, la table **GARAGE** est déjà présente. Maintenant dans la **base2**, on ajoute une table **HABILITE** qui contient les spécificités des garages(quels marques les garages sont habiles de réparer).
 
 ```sql
-INSERT INTO CLIENT2 (id, nom, prenom, age) VALUES (2, 'Hebert', 'Aimée', 35),
-                                                  (4, 'Savary', 'Hilaire', 27),
-                                                  (6, 'Dubois', 'Léo', 23),
-                                                  (8, 'Georges', 'Antoine', 25),
-                                                  (10, 'Messi', 'Lionel', 33),
-                                                  (11, 'Precieuse', 'Pierre', 35),
-                                                  (12, 'Sensei', 'Koro', 18);
+CREATE TABLE HABILITE (
+    idgarage INT NOT NULL AUTO_INCREMENT,
+    marque VARCHAR(255),
+    PRIMARY KEY (idgarage, marque)
+);
+
+INSERT INTO HABILITE (idgarage, marque) VALUES (1, 'Citröen'),
+                                               (1, 'Peugeot'),
+                                               (1, 'Nissan'),
+                                               (2, 'Nissan'),
+                                               (2, 'Peugeot'),
+                                               (3, 'BMW'),
+                                               (4, 'Mercedes'),
+                                               (5, 'Peugeot'),
+                                               (6, 'Citröen'),
+                                               (7, 'Renault'),
+                                               (7, 'Peugeot'),
+                                               (8, 'Renault'),
+                                               (9, 'Renault'),
+                                               (10, 'Renault'),
+                                               (10, 'Nissan');
 ```
-On va maintenant écrire un programme java qui utilise 2 connections (à base1 et base2) pour implémenter une jointure réparties entre les 2 bases par une méthode de tri-fusion. La jointure se fera sur l'attribut **id** qui est unique(il n'y aura pas deux fois le même **id**). 
+On va maintenant écrire un programme java qui utilise 2 connections (à base1 et base2) pour implémenter une jointure réparties entre les 2 bases par une méthode de tri-fusion. La jointure se fera sur l'attribut **idgarage** entre **GARAGE** et **HABILITE**.
+
+**Requête** : pour chaque *garage*, afficher les *marques* que le garage est habile de réparer.
 
 ```java
 import java.sql.Connection;
@@ -238,61 +283,51 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Exercice3 {
-        
-    /*
-    * Fonction d'affichage pour chaque tuple de la table CLIENT
-    */
-    public static void join(String id, String nom, String prenom, String age) {
-        System.out.print("ID: " + id +"    ");
-        System.out.print("Nom: " + nom +"    ");
-        System.out.print("Prenom: " + prenom +"    ");
-        System.out.println("Age: " + age +".");
-    }
-        
+	
+	/*
+	 * Fonction d'affichage les garages
+	 */
+	public static void affiche(String id, String nom, String ville, String marque) {
+		System.out.print("ID: " + id +"    ");
+		System.out.print("Nom: " + nom +"    ");
+        System.out.print("Ville: " + ville +"    ");
+        System.out.println("Marque: " + marque +".");
+	}
+	
     public static void main(String[] args) {
-            
-        String url1 = "jdbc:h2:tcp://localhost:9093/~/base1";
-        String url2 = "jdbc:h2:tcp://localhost:9093/~/base2";
+    	
+    	String base1 = "jdbc:h2:tcp://localhost:9093/~/base1";
+    	String base2 = "jdbc:h2:tcp://localhost:9093/~/base2";
         String usr = "moi";
         String pwd = "";
-            
-        try(Connection connection1 = DriverManager.getConnection(url1, usr, pwd);
-            Connection connection2 = DriverManager.getConnection(url2, usr, pwd);
+        
+        try(Connection connection1 = DriverManager.getConnection(base1, usr, pwd);
+        	Connection connection2 = DriverManager.getConnection(base2, usr, pwd);
             Statement statement1 = connection1.createStatement();
-            Statement statement2 = connection2.createStatement();
-                
-            /* 
-            * On récupère directement les deux tables CLIENT1 et CLIENT2 triés par ID (par ordre croissant)
-            * en utilisant ORDER BY
-            */
-            ResultSet rsClient1 = statement1.executeQuery("SELECT * FROM CLIENT1 ORDER BY ID");
-            ResultSet rsClient2 = statement2.executeQuery("SELECT * FROM CLIENT2 ORDER BY ID");) { 
-                
-            while(rsClient1.next() && rsClient2.next()) {
-                /* Si CLIENT1.ID < CLIENT2.ID */
-                if(rsClient1.getInt("id") < rsClient2.getInt("id")) {
-                    join(rsClient1.getString("id"), rsClient1.getString("nom"), rsClient1.getString("prenom"), rsClient1.getString("age"));
-                    join(rsClient2.getString("id"), rsClient2.getString("nom"), rsClient2.getString("prenom"), rsClient2.getString("age"));
-                } 
-                /* Si CLIENT1.ID < CLIENT2.ID */
-                else {
-                    join(rsClient2.getString("id"), rsClient2.getString("nom"), rsClient2.getString("prenom"), rsClient2.getString("age"));
-                    join(rsClient1.getString("id"), rsClient1.getString("nom"), rsClient1.getString("prenom"), rsClient1.getString("age"));
+        	Statement statement2 = connection2.createStatement();	
+        	/* 
+        	 * On récupère directement les tables GARAGE et HABILITE triées par idgarage (par ordre croissant)
+        	 * en utilisant ORDER BY
+        	 */
+            ResultSet rsGara = statement1.executeQuery("SELECT * FROM GARAGE ORDER BY idgarage");
+        	ResultSet rsHabi =  statement2.executeQuery("SELECT * FROM HABILITE ORDER BY idgarage");) { 
+        	
+        	/* On récupère le premier tuple de chauque table */
+        	boolean garage = rsGara.next();
+        	boolean habilite = rsHabi.next();
+        	
+        	/* Tant que les deux tables ont au moins un tuple */
+        	while(garage && habilite) {
+                if(rsGara.getInt("idgarage") == rsHabi.getInt("idgarage")) {
+                    affiche(rsGara.getString("idgarage"), rsGara.getString("nom"), rsGara.getString("ville"), rsHabi.getString("marque"));
+                    /* On avance le curseur */
+                    habilite = rsHabi.next();
+                }else {
+                	/* On avance le curseur */
+                	garage = rsGara.next();
                 }
             }
                 
-            /* Arrivé ici, au moins l'une des deux tables est vide 
-            * On va donc récupérer tous les éléments qui restent
-            */
-                
-            /* On récupère tous les tuples restant dans CLIENT1 */
-            while(rsClient1.next()) {
-                join(rsClient1.getString("id"), rsClient1.getString("nom"), rsClient1.getString("prenom"), rsClient1.getString("age"));
-            }
-            /* On récupère tous les tuples restant dans CLIENT2 */
-            while(rsClient2.next()) {
-                join(rsClient2.getString("id"), rsClient2.getString("nom"), rsClient2.getString("prenom"), rsClient2.getString("age"));
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -301,24 +336,29 @@ public class Exercice3 {
 ``` 
 L'affichage dans la console : 
 
-    ID: 1    Nom: Armand    Prenom: Rébecca    Age: 24.
-    ID: 2    Nom: Hebert    Prenom: Aimée    Age: 35.
-    ID: 3    Nom: Ribeiro    Prenom: Marielle    Age: 18.
-    ID: 4    Nom: Savary    Prenom: Hilaire    Age: 27.
-    ID: 5    Nom: Dupont    Prenom: Jean    Age: 64.
-    ID: 6    Nom: Dubois    Prenom: Léo    Age: 23.
-    ID: 7    Nom: Mbappé    Prenom: Kylian    Age: 21.
-    ID: 8    Nom: Georges    Prenom: Antoine    Age: 25.
-    ID: 9    Nom: Cavani    Prenom: Edinson    Age: 32.
-    ID: 10    Nom: Messi    Prenom: Lionel    Age: 33.
-    ID: 11    Nom: Precieuse    Prenom: Pierre    Age: 35.
-    ID: 12    Nom: Sensei    Prenom: Koro    Age: 18.
+    ID: 1    Nom: Speedy    Ville: Paris    Marque: Citröen.
+    ID: 1    Nom: Speedy    Ville: Paris    Marque: Nissan.
+    ID: 1    Nom: Speedy    Ville: Paris    Marque: Peugeot.
+    ID: 2    Nom: AutoService    Ville: Tours    Marque: Nissan.
+    ID: 2    Nom: AutoService    Ville: Tours    Marque: Peugeot.
+    ID: 3    Nom: Feu Vert    Ville: Paris    Marque: BMW.
+    ID: 4    Nom: iDGARAGE    Ville: Lyon    Marque: Mercedes.
+    ID: 5    Nom: Modern Garage    Ville: Bordeaux    Marque: Peugeot.
+    ID: 6    Nom: Garage Auto    Ville: Paris    Marque: Citröen.
+    ID: 7    Nom: La Centrale    Ville: Marseille    Marque: Peugeot.
+    ID: 7    Nom: La Centrale    Ville: Marseille    Marque: Renault.
+    ID: 8    Nom: AD Garage    Ville: Paris    Marque: Renault.
+    ID: 9    Nom: Euromaster    Ville: Lyon    Marque: Renault.
+    ID: 10    Nom: Nauroto    Ville: La Rochelle    Marque: Nissan.
+    ID: 10    Nom: Nauroto    Ville: La Rochelle    Marque: Renault.
 
+**Complexité** : 
 
 ## Exercice 4 facultatif : Jointure sur des attributs non uniques 
 
-On veut étudier le cas d'une requête d'equi-jointure entre deux attributs qui ne sont pas uniques, par exemple entre deux **âges**. La différence avec l'exercice précédent est qu'il peut y avoir des valeurs qui se répètent dans les 2 attributs de jointure.  
-Dans notre cas, on va faire une jointure sur l'attribut **age** et certains *clients* ont le même âge, on devra donc faire attention à tous les traiter.
+On veut étudier le cas d'une requête d'équi-jointure entre deux attributs qui ne sont pas uniques, par exemple entre deux clés étrangères. La différence avec l'exercice précédent est qu'il peut y avoir des valeurs qui se répètent dans les 2 attributs de jointure.  
+Dans notre cas, on va faire une jointure sur l'attribut **idgarage** entre **MECANICIEN** et **HABILITE**.  
+Pour simplifier, on va ajouter les attributs *nom* et *prenom* à la table **MECANICIEN**.
 
 ``` java
 import java.sql.Connection;
@@ -328,80 +368,90 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Exercice4 {
+	
+	/*
+	 * Fonction d'affichage
+	 */
+	public static void affiche(String idgarage, String nom, String prenom, String niveau, String marque) {
+		System.out.print("IDgarage: " + idgarage +"    ");
+		System.out.print("Nom: " + nom +"    ");
+		System.out.print("Prenom: " + prenom +"    ");
+		System.out.print("Niveau: " + niveau +"    ");
+        System.out.println("Marque: " + marque +".");
         
-    /*
-    * Fonction d'affichage pour chaque tuple de la table CLIENT
-    */
-    public static void join(String id, String nom, String prenom, String age) {
-        System.out.print("Age: " + age +"    ");
-        System.out.print("ID: " + id +"    ");
-        System.out.print("Nom: " + nom +"    ");
-        System.out.println("Prenom: " + prenom +".");
-            
-    }
-        
+	}
+	
     public static void main(String[] args) {
-            
-        String url1 = "jdbc:h2:tcp://localhost:9093/~/base1";
-        String url2 = "jdbc:h2:tcp://localhost:9093/~/base2";
+    	
+    	String url1 = "jdbc:h2:tcp://localhost:9093/~/base1";
+    	String url2 = "jdbc:h2:tcp://localhost:9093/~/base2";
         String usr = "moi";
         String pwd = "";
-            
+        
         try(Connection connection1 = DriverManager.getConnection(url1, usr, pwd);
-            Connection connection2 = DriverManager.getConnection(url2, usr, pwd);
-                    
-            /* 
-            * Par défaut, le type de ResultSet est TYPE_FORWARD_ONLY, donc afin de pouvoir utiliser la méthode previous() 
-            * on doit mettre le type à TYPE_SCROLL_INSENSITIVE et la concurrence à CONCUR_READ_ONLY (qui est déjà par défaut) 
-            */
+        	Connection connection2 = DriverManager.getConnection(url2, usr, pwd);
+        		
+        	/* 
+        	 * Par défaut, le type de ResultSet est TYPE_FORWARD_ONLY, donc afin de pouvoir utiliser la méthode previous() 
+        	 * on doit mettre le type à TYPE_SCROLL_INSENSITIVE et la concurrence à CONCUR_READ_ONLY (qui est déjà par défaut) 
+        	 */
             Statement statement1 = connection1.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            Statement statement2 = connection2.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                
-            /* 
-            * On récupère directement les deux tables CLIENT1 et CLIENT2 triés par AGE (par ordre croissant)
-            * en utilisant ORDER BY
-            */
-            ResultSet rsClient1 = statement1.executeQuery("SELECT * FROM CLIENT1 ORDER BY AGE");
-            ResultSet rsClient2 = statement2.executeQuery("SELECT * FROM CLIENT2 ORDER BY AGE");) { 
-                
-            while(rsClient1.next() && rsClient2.next()) {
-                /* On regoupe les doublons */
-                if(rsClient1.getInt("age") == rsClient2.getInt("age")) {
-                    join(rsClient1.getString("id"), rsClient1.getString("nom"), rsClient1.getString("prenom"), rsClient1.getString("age"));
-                    join(rsClient2.getString("id"), rsClient2.getString("nom"), rsClient2.getString("prenom"), rsClient2.getString("age"));
-                } 
-                /* Si CLIENT1.ID < CLIENT2.ID */
-                else if(rsClient1.getInt("age") < rsClient2.getInt("age")) {
-                    join(rsClient1.getString("id"), rsClient1.getString("nom"), rsClient1.getString("prenom"), rsClient1.getString("age"));
-                    /* Replacer le curseur de Client2 */
-                    rsClient2.previous();
-                } 
-                /* Replacer le curseur de Client1 */
+        	Statement statement2 = connection2.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        	
+        	/* 
+        	 * On récupère directement les tables MECANICIEN et HABILITE triées par idgarage (par ordre croissant)
+        	 * en utilisant ORDER BY
+        	 */
+            ResultSet rsMeca = statement1.executeQuery("SELECT * FROM MECANICIEN ORDER BY idgarage");
+        	ResultSet rsHabi = statement2.executeQuery("SELECT * FROM HABILITE ORDER BY idgarage");) { 
+        	
+        	/* On récupère le premier tuple de chaque table */
+        	boolean mecano = rsMeca.next();
+        	boolean habilite = rsHabi.next();
+        	/* Compteur pour stocker le nombre de next() */
+        	int counter = 0;
+        	
+        	/* Tant que les deux tables ont au moins un tuple */
+        	while(mecano && habilite) {
+                if(rsMeca.getInt("idgarage") == rsHabi.getInt("idgarage")) {
+                    affiche(rsMeca.getString("idgarage"), rsMeca.getString("nom"), rsMeca.getString("prenom"), rsMeca.getString("niveau"), rsHabi.getString("marque"));
+                    /* On avance le curseur */
+                    habilite = rsHabi.next();
+                    counter++;
+                    
+                    /* Ici on traite le cas où on arrive à la fin de la table HABILITE */
+                    if(rsHabi.isAfterLast()) {
+                    	int mecanoPre = rsMeca.getInt("idgarage");
+                    	/* On avance le curseur */
+                    	mecano = rsMeca.next();
+                    	
+                    	if(mecano && mecanoPre == rsMeca.getInt("idgarage")) {
+                    		while (counter > 0) {
+                                /* On repositionne le curseur */
+                            	habilite = rsHabi.previous();
+                    			counter--;
+    						}
+                    	}
+                    }
+                }
+                else if(rsMeca.getInt("idgarage") > rsHabi.getInt("idgarage")) {
+                	/* On avance le curseur */
+                	habilite = rsHabi.next();
+                }
                 else {
-                    join(rsClient2.getString("id"), rsClient2.getString("nom"), rsClient2.getString("prenom"), rsClient2.getString("age"));
-                    rsClient1.previous();
-                }
-                    
-                /* Test pour savoir si c'était le dernier tuple de CLIENT1 */
-                    if(!rsClient1.next()) {
-                    /* Si oui, on récupère tous les tuples restant dans CLIENT2 */
-                    while(rsClient2.next()) {
-                        join(rsClient2.getString("id"), rsClient2.getString("nom"), rsClient2.getString("prenom"), rsClient2.getString("age"));
-                    }
-                }else {
-                    /* Sinon, replacer le curseur */
-                    rsClient1.previous();
-                }
-                    
-                /* Test pour savoir si c'était le dernier élément de CLIENT2 */
-                if(!rsClient2.next()) {
-                    /* Si oui, on récupère tous les tuples restant dans CLIENT1 */
-                    while(rsClient1.next()) {
-                        join(rsClient1.getString("id"), rsClient1.getString("nom"), rsClient1.getString("prenom"), rsClient1.getString("age"));
-                    }
-                }else {
-                    /* Sinon, replacer le curseur */
-                    rsClient2.previous();
+                	int mecanoPre = rsMeca.getInt("idgarage");
+                	/* On avance le curseur */
+                	mecano = rsMeca.next();
+                	
+                	if(mecano && mecanoPre == rsMeca.getInt("idgarage")) {
+                		while (counter > 0) {
+                            /* On repositionne le curseur */
+                			rsHabi.previous();
+                			counter--;
+						}
+                	}else {
+                		counter = 0;
+                	}
                 }
             }
         } catch (SQLException e) {
@@ -410,21 +460,29 @@ public class Exercice4 {
     }
 }
 ```
+**Complexité** : 
 
 Ainsi dans la console, on a l'affichage suivant : 
 
-    Age: 18    ID: 3    Nom: Ribeiro    Prenom: Marielle.
-    Age: 18    ID: 12    Nom: Sensei    Prenom: Koro.
-    Age: 21    ID: 7    Nom: Mbappé    Prenom: Kylian.
-    Age: 23    ID: 6    Nom: Dubois    Prenom: Léo.
-    Age: 24    ID: 1    Nom: Armand    Prenom: Rébecca.
-    Age: 25    ID: 8    Nom: Georges    Prenom: Antoine.
-    Age: 27    ID: 4    Nom: Savary    Prenom: Hilaire.
-    Age: 32    ID: 9    Nom: Cavani    Prenom: Edinson.
-    Age: 33    ID: 10    Nom: Messi    Prenom: Lionel.
-    Age: 35    ID: 2    Nom: Hebert    Prenom: Aimée.
-    Age: 35    ID: 11    Nom: Precieuse    Prenom: Pierre.
-    Age: 64    ID: 5    Nom: Dupont    Prenom: Jean.
+    IDgarage: 1    Nom: Armand    Prenom: Rébecca    Niveau: 2    Marque: Citröen.
+    IDgarage: 1    Nom: Armand    Prenom: Rébecca    Niveau: 2    Marque: Nissan.
+    IDgarage: 1    Nom: Armand    Prenom: Rébecca    Niveau: 2    Marque: Peugeot.
+    IDgarage: 1    Nom: Hebert    Prenom: Aimée    Niveau: 3    Marque: Citröen.
+    IDgarage: 1    Nom: Hebert    Prenom: Aimée    Niveau: 3    Marque: Nissan.
+    IDgarage: 1    Nom: Hebert    Prenom: Aimée    Niveau: 3    Marque: Peugeot.
+    IDgarage: 1    Nom: Mbappé    Prenom: Kylian    Niveau: 2    Marque: Citröen.
+    IDgarage: 1    Nom: Mbappé    Prenom: Kylian    Niveau: 2    Marque: Nissan.
+    IDgarage: 1    Nom: Mbappé    Prenom: Kylian    Niveau: 2    Marque: Peugeot.
+    IDgarage: 3    Nom: Dupont    Prenom: Jean    Niveau: 2    Marque: BMW.
+    IDgarage: 3    Nom: Precieuse    Prenom: Pierre    Niveau: 1    Marque: BMW.
+    IDgarage: 4    Nom: Pitaut    Prenom: Enzo    Niveau: 2    Marque: Mercedes.
+    IDgarage: 4    Nom: Hunter    Prenom: Paulo    Niveau: 2    Marque: Mercedes.
+    IDgarage: 6    Nom: Georges    Prenom: Antoine    Niveau: 2    Marque: Citröen.
+    IDgarage: 10    Nom: Ribeiro    Prenom: Marielle    Niveau: 2    Marque: Nissan.
+    IDgarage: 10    Nom: Ribeiro    Prenom: Marielle    Niveau: 2    Marque: Renault.
+    IDgarage: 10    Nom: Savary    Prenom: Hilaire    Niveau: 1    Marque: Nissan.
+    IDgarage: 10    Nom: Savary    Prenom: Hilaire    Niveau: 1    Marque: Renault.
+
 
 ## Diverses 
 
