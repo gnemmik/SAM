@@ -136,6 +136,7 @@ public class Exercice1 {
     }
 }
 ```
+**Remarque** : ce programme parcourt une fois la table **GARAGE**.
 
 L'affichage dans la console : 
 
@@ -160,7 +161,7 @@ Une requête paramétrée est utilisée pour l’itération imbriquée. Pour cr�
 
 **Requête** : afficher *nom*, *prenom* et *age* de tous les mécaniciens. 
 
-Pour cela, on va créer une table **PERSONNE** qui contient les informations personnelles des mécaniciens (les personnes dans cette table ne sont pas tous mécaniciens). 
+Pour cela, on va créer une table **PERSONNE** qui contiendra les informations personnelles des mécaniciens mais aussi des autres *personnes* qui ne sont pas forcément mécaniciens. 
 
 ``` sql
 CREATE TABLE PERSONNE (
@@ -228,6 +229,8 @@ public class Exercice2 {
     }
 }
 ```
+**Remarque** : on utilise ici la boucle imbriquée, on parcourt donc une fois la table **MECANICIEN** et pour chaque *mécanicien*, on parcourt une fois la table **PERSONNE**. Donc avec 10 *mécaniciens*, on itéra une fois la table **MECANICIEN** et 10 fois la table **PERSONNE**, ce qui n'est pas forcément très optimisée comme méthode de jointure.  
+On verra dans la suite une autre méthode de jointure plus optimisée, la jointure par tri-fusion.
 
 L'affichage dans la console :
 
@@ -273,7 +276,7 @@ INSERT INTO HABILITE (idgarage, marque) VALUES (1, 'Citröen'),
 ```
 On va maintenant écrire un programme java qui utilise 2 connections (à base1 et base2) pour implémenter une jointure réparties entre les 2 bases par une méthode de tri-fusion. La jointure se fera sur l'attribut **idgarage** entre **GARAGE** et **HABILITE**.
 
-**Requête** : pour chaque *garage*, afficher les *marques* que le garage est habile de réparer.
+**Requête** : pour chaque garage, afficher les marques que le garage est habile de réparer.
 
 ```java
 import java.sql.Connection;
@@ -285,7 +288,7 @@ import java.sql.Statement;
 public class Exercice3 {
 	
 	/*
-	 * Fonction d'affichage les garages
+	 * Fonction d'affichage
 	 */
 	public static void affiche(String id, String nom, String ville, String marque) {
 		System.out.print("ID: " + id +"    ");
@@ -312,7 +315,7 @@ public class Exercice3 {
             ResultSet rsGara = statement1.executeQuery("SELECT * FROM GARAGE ORDER BY idgarage");
         	ResultSet rsHabi =  statement2.executeQuery("SELECT * FROM HABILITE ORDER BY idgarage");) { 
         	
-        	/* On récupère le premier tuple de chauque table */
+        	/* On récupère le premier tuple de chaque table */
         	boolean garage = rsGara.next();
         	boolean habilite = rsHabi.next();
         	
@@ -322,7 +325,12 @@ public class Exercice3 {
                     affiche(rsGara.getString("idgarage"), rsGara.getString("nom"), rsGara.getString("ville"), rsHabi.getString("marque"));
                     /* On avance le curseur */
                     habilite = rsHabi.next();
-                }else {
+                }
+                else if(rsGara.getInt("idgarage") > rsHabi.getInt("idgarage")) {
+                	/* On avance le curseur */
+                	habilite = rsHabi.next();
+                }
+                else {
                 	/* On avance le curseur */
                 	garage = rsGara.next();
                 }
@@ -334,6 +342,9 @@ public class Exercice3 {
     }
 }
 ``` 
+
+**Remarque**: ici on utilise le tri-fusion pour faire notre jointure. Les deux tables sont triées grâce à **ORDER BY**, ensuite on itère une fois chaque table pour faire la jointure.  
+
 L'affichage dans la console : 
 
     ID: 1    Nom: Speedy    Ville: Paris    Marque: Citröen.
@@ -352,7 +363,7 @@ L'affichage dans la console :
     ID: 10    Nom: Nauroto    Ville: La Rochelle    Marque: Nissan.
     ID: 10    Nom: Nauroto    Ville: La Rochelle    Marque: Renault.
 
-**Complexité** : 
+ 
 
 ## Exercice 4 facultatif : Jointure sur des attributs non uniques 
 
@@ -460,7 +471,7 @@ public class Exercice4 {
     }
 }
 ```
-**Complexité** : 
+**Remarque** : la différence avec l'exercice précédent est qu'ici, on doit prendre en compte le cas où il existerait des valeurs (ici **idgarage**) qui se répètent plusieurs fois dans les deux tables, il est donc parfois nécéssaire de faire reculer le curseur avec la fonction **previous()**.  
 
 Ainsi dans la console, on a l'affichage suivant : 
 
